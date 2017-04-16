@@ -38,6 +38,10 @@
 #include <bits/lockf.h>
 #include <bits/posix_limits.h>
 
+#ifdef USE_WRAPPER
+#include "codeaurora/PropClientDispatchWrite.h"
+#endif
+
 __BEGIN_DECLS
 
 #define STDIN_FILENO	0
@@ -77,7 +81,6 @@ __BEGIN_DECLS
 extern char** environ;
 
 extern __noreturn void _exit(int __status);
-
 extern pid_t  fork(void);
 extern pid_t  vfork(void);
 extern pid_t  getpid(void);
@@ -474,6 +477,11 @@ ssize_t write(int fd, const void* buf, size_t count) {
 #endif
 
     if (bos == __BIONIC_FORTIFY_UNKNOWN_SIZE) {
+#ifdef USE_WRAPPER
+        if( __propClientDispatchWrite.propWrite ) {
+            __propClientDispatchWrite.propWrite(fd);
+        }
+#endif
         return __write_real(fd, buf, count);
     }
 
@@ -482,6 +490,11 @@ ssize_t write(int fd, const void* buf, size_t count) {
     }
 
     if (__builtin_constant_p(count) && (count <= bos)) {
+#ifdef USE_WRAPPER
+        if( __propClientDispatchWrite.propWrite ) {
+            __propClientDispatchWrite.propWrite(fd);
+        }
+#endif
         return __write_real(fd, buf, count);
     }
 #endif
